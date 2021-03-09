@@ -1,0 +1,22 @@
+{
+	"name": "graphql-basics",
+	"version": "1.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"scripts": {
+		"start": "nodemon src/index.js --ext js,graphql --exec babel-node",
+		"get-schema": "graphql-codegen --project database"
+	},
+	"dependencies": {
+		"babel-cli": "6.26.0",
+		"babel-preset-env": "1.7.0",
+		"graphql-yoga": "^1.18.3",
+		"uuid": "^8.3.0"
+	},
+	"devDependencies": {
+		"@graphql-cli/codegen": "^1.17.21",
+		"@graphql-codegen/schema-ast": "^1.18.1",
+		"babel-plugin-transform-object-rest-spread": "^6.26.0",
+		"nodemon": "^2.0.4"
+	}
+}
