@@ -1,33 +1,49 @@
 const Subscription = {
-	count: {
-		subscribe(parent, ctx, { pubSub }, info) {
-			let count = 0;
+  count: {
+    subscribe(parent, ctx, { pubSub }, info) {
+      let count = 0;
 
-			setInterval(() => {
-				count++;
-				pubSub.publish("count", {
-					count,
-				});
-			}, 1000);
+      setInterval(() => {
+        count++;
+        pubSub.publish("count", {
+          count,
+        });
+      }, 1000);
 
-			return pubSub.asyncIterator("count");
-		},
-	},
-	comment: {
-		subscribe(parent, { id }, { db, pubSub }, info) {
-			const comment = db.comments.find((comment) => comment.post == id);
+      return pubSub.asyncIterator("count");
+    },
+  },
+  comment: {
+    subscribe(parent, { id }, { prisma }, info) {
+      return prisma.subscription.comment(
+        {
+          where: {
+            node: {
+              post: {
+                id: id,
+              },
+            },
+          },
+        },
+        info
+      );
+    },
+  },
 
-			if (!comment) throw new Error("Comment not found.");
-
-			return pubSub.asyncIterator(`Comment ${id}`);
-		},
-	},
-
-	post: {
-		subscribe(parent, args, { pubSub }, info) {
-			return pubSub.asyncIterator("POST");
-		},
-	},
+  post: {
+    subscribe(parent, args, { prisma }, info) {
+      return prisma.subscription.post(
+        {
+          where: {
+            node: {
+              id: args.id,
+            },
+          },
+        },
+        info
+      );
+    },
+  },
 };
 
 export { Subscription as default };
