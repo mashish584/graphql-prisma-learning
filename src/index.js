@@ -24,11 +24,12 @@ const server = new GraphQLServer({
     Comment,
     Subscription,
   },
-  context: () => {
+  context: (request) => {
     return {
       db,
       pubSub,
       prisma,
+      request,
     };
   },
 });

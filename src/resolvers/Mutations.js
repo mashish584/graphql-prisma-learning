@@ -1,4 +1,6 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { getUserId } from "../utils";
 
 const Mutation = {
   async createUser(parent, args, { prisma }, info) {
@@ -8,17 +10,36 @@ const Mutation = {
     const password = await bcrypt.hash(args.data.password, 10);
 
     const emailTaken = await prisma.exists.User({ email: args.data.email });
+
     if (emailTaken) throw new Error("Email already taken.");
 
-    return prisma.mutation.createUser(
-      {
-        data: {
-          ...args.data,
-          password,
-        },
+    const user = prisma.mutation.createUser({
+      data: {
+        ...args.data,
+        password,
       },
-      info
-    );
+    });
+
+    return {
+      user,
+      token: jwt.sign({ userId: user.id }, "mySecret"),
+    };
+  },
+  async loginUser(parent, { data }, { prisma }, info) {
+    const user = await prisma.query.user({
+      where: { email: data.email },
+    });
+
+    if (!user) throw new Error("Invalid credentials");
+
+    const isPasswordMatch = await bcrypt.compare(data.password, user.password);
+
+    if (!isPasswordMatch) throw new Error("Invalid credentials");
+
+    return {
+      user,
+      token: jwt.sign({ userId: user.id }, "mySecret"),
+    };
   },
   updateUser(parent, { id, data }, { db }, info) {
     return prisma.mutation.updateUser(
@@ -33,7 +54,9 @@ const Mutation = {
 
     return prisma.mutation.deleteUser({ where: { id: args.id } }, info);
   },
-  createPost(parent, args, { prisma, pubSub }, info) {
+  createPost(parent, args, { prisma, pubSub, request }, info) {
+    const userId = getUserId(request);
+
     return prisma.mutation.createPost(
       {
         data: {
@@ -42,7 +65,7 @@ const Mutation = {
           published: args.data.published || false,
           author: {
             connect: {
-              id: args.data.author,
+              id: userId,
             },
           },
         },
