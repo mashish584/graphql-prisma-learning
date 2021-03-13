@@ -2,11 +2,16 @@ import { getUserId } from "../utils";
 
 const Query = {
   posts(parent, args, { prisma }, info) {
-    let operationalArgs = {};
+    let operationalArgs = {
+      where: {
+        published: true,
+      },
+    };
     if (args.query) {
-      operationalArgs.where = {
-        OR: [{ title_contains: args.query }, { body_contains: args.query }],
-      };
+      operationalArgs.where.OR = [
+        { title_contains: args.query },
+        { body_contains: args.query },
+      ];
     }
     return prisma.query.posts(operationalArgs, info);
   },
@@ -49,6 +54,24 @@ const Query = {
     const user = await prisma.query.user({ where: { id: userId } });
 
     return user;
+  },
+  async myPosts(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request);
+
+    const operationalArgs = {
+      where: { author: { id: userId } },
+    };
+
+    if (args.query) {
+      operationalArgs.where.OR = [
+        { title_contains: args.query },
+        { body_contains: args.query },
+      ];
+    }
+
+    const posts = await prisma.query.posts(operationalArgs);
+
+    return posts;
   },
 };
 
