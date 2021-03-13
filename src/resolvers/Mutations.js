@@ -41,18 +41,23 @@ const Mutation = {
       token: jwt.sign({ userId: user.id }, "mySecret"),
     };
   },
-  updateUser(parent, { id, data }, { db }, info) {
+
+  updateUser(parent, { id, data }, { prisma, request }, info) {
+    const userId = getUserId(request);
+
     return prisma.mutation.updateUser(
-      { where: { id: args.id }, data: args.data },
+      { where: { id: userId }, data: data },
       info
     );
   },
+
   deleteUser(parent, args, { prisma }, info) {
+    const userId = getUserId();
     // const userExist = prisma.exists.User({ email: args.id });
 
     // if (!userExist) throw new Error("User not found.");
 
-    return prisma.mutation.deleteUser({ where: { id: args.id } }, info);
+    return prisma.mutation.deleteUser({ where: { id: userId } }, info);
   },
   createPost(parent, args, { prisma, pubSub, request }, info) {
     const userId = getUserId(request);
@@ -73,10 +78,17 @@ const Mutation = {
       info
     );
   },
-  updatePost(parent, { id, data }, { prisma }, info) {
-    const post = prisma.query.post({ where: { id: id } });
+  async updatePost(parent, { id, data }, { prisma, request }, info) {
+    const userId = getUserId(request);
 
-    if (!post) throw new Error("Post not exist");
+    const isUserPost = await prisma.exists.Post({
+      id,
+      author: {
+        id: userId,
+      },
+    });
+
+    if (!isUserPost) throw new Error("Authorization required");
 
     if (
       (data.title && typeof data.title !== "string") ||
@@ -88,7 +100,16 @@ const Mutation = {
 
     return prisma.mutation.updatePost({ where: { id: id }, data: data }, info);
   },
-  deletePost(parent, args, { prisma }, info) {
+  async deletePost(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request);
+
+    const isUserPost = await prisma.exists.post({
+      id: args.id,
+      where: { author: userId },
+    });
+
+    if (!isUserPost) throw new Error("Authorization required");
+
     return prisma.mutation.deletePost({ where: { id: args.id } }, info);
     // const postIndex = db.posts.findIndex((post) => post.id == args.id);
 
@@ -108,7 +129,8 @@ const Mutation = {
 
     // return deletedPost;
   },
-  createComment(parent, args, { prisma }, info) {
+  createComment(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request);
     // const userExist = db.users.find((user) => user.id == args.data.author);
     // const postExist = db.posts.find((post) => post.id == args.data.post);
 
@@ -134,7 +156,7 @@ const Mutation = {
           ...args.data,
           author: {
             connect: {
-              id: args.data.author,
+              id: userId,
             },
           },
           post: {
@@ -147,7 +169,13 @@ const Mutation = {
       info
     );
   },
-  updateComment(parent, { id, data }, { prisma }, info) {
+  updateComment(parent, { id, data }, { prisma, request }, info) {
+    const userId = getUserId(request);
+
+    const isUserComment = prisma.exists.Comment({ id, author: { id: userId } });
+
+    if (!isUserComment) throw new Error("Authorization required");
+
     // const comment = db.comments.find((comment) => comment.id == id);
 
     // if (!comment) throw new Error("Comment not exist.");
@@ -165,25 +193,21 @@ const Mutation = {
 
     return prisma.mutation.updateComment({ where: { id: id }, data }, info);
   },
-  deleteComment(parent, args, { db, pubSub }, info) {
-    const commentIndex = db.comments.findIndex((comment) => {
-      return comment.id == args.id;
+  async deleteComment(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request);
+
+    const commentExist = await prisma.exists.comment({
+      where: { id: args.id },
+    });
+    if (!commentExist) throw new Error("Comment not exist");
+
+    const isUserComment = await prisma.exists.comment({
+      where: { author: userId },
     });
 
-    if (commentIndex === -1) {
-      throw new Error("Comment not found");
-    }
+    if (!isUserComment) throw new Error("Authorization required");
 
-    const [deleteComment] = db.comments.splice(commentIndex, 1);
-
-    pubSub.publish(`Comment ${deleteComment.post}`, {
-      comment: {
-        mutation: "DELETED",
-        data: deleteComment,
-      },
-    });
-
-    return deleteComment;
+    return prisma.mutation.deleteComment({ where: { id: args.id } });
   },
 };
 

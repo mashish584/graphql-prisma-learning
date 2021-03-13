@@ -1,3 +1,5 @@
+import { getUserId } from "../utils";
+
 const Query = {
   posts(parent, args, { prisma }, info) {
     let operationalArgs = {};
@@ -19,6 +21,27 @@ const Query = {
   },
   comments(parent, args, { prisma }, info) {
     return prisma.query.comments(null, info);
+  },
+  async post(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request, false);
+
+    const [post] = await prisma.query.posts({
+      where: {
+        id: args.id,
+        OR: [
+          {
+            author: {
+              id: userId,
+            },
+          },
+          { published: true },
+        ],
+      },
+    });
+
+    if (!post) throw new Error("Post not found...");
+
+    return post;
   },
 };
 
