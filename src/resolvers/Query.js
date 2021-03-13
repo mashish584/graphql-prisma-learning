@@ -15,6 +15,7 @@ const Query = {
     }
     return prisma.query.posts(operationalArgs, info);
   },
+
   users(parent, args, { prisma }, info) {
     let operationalArgs = {};
     if (args.query) {
@@ -24,9 +25,11 @@ const Query = {
     }
     return prisma.query.users(operationalArgs, info);
   },
+
   comments(parent, args, { prisma }, info) {
     return prisma.query.comments(null, info);
   },
+
   async post(parent, args, { prisma, request }, info) {
     const userId = getUserId(request, false);
 
@@ -48,6 +51,7 @@ const Query = {
 
     return post;
   },
+
   async me(parent, args, { prisma, request }, info) {
     const userId = getUserId(request);
 
@@ -55,6 +59,7 @@ const Query = {
 
     return user;
   },
+
   async myPosts(parent, args, { prisma, request }, info) {
     const userId = getUserId(request);
 

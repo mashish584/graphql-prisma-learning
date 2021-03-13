@@ -98,12 +98,24 @@ const Mutation = {
       throw new Error("Please check data");
     }
 
+    const isPublishedPosts = await prisma.exists.Post({ id, published: true });
+
+    if (isPublishedPosts && data.published === false) {
+      await prisma.mutation.deleteManyComments({
+        where: {
+          post: {
+            id,
+          },
+        },
+      });
+    }
+
     return prisma.mutation.updatePost({ where: { id: id }, data: data }, info);
   },
   async deletePost(parent, args, { prisma, request }, info) {
     const userId = getUserId(request);
 
-    const isUserPost = await prisma.exists.post({
+    const isUserPost = await prisma.exists.Post({
       id: args.id,
       where: { author: userId },
     });
@@ -129,8 +141,16 @@ const Mutation = {
 
     // return deletedPost;
   },
-  createComment(parent, args, { prisma, request }, info) {
+  async createComment(parent, args, { prisma, request }, info) {
     const userId = getUserId(request);
+
+    const isPublishedPost = await prisma.exists.Post({
+      id: args.data.post,
+      published: true,
+    });
+
+    if (!isPublishedPost) throw new Error("Unable to comment...");
+
     // const userExist = db.users.find((user) => user.id == args.data.author);
     // const postExist = db.posts.find((post) => post.id == args.data.post);
 
@@ -196,12 +216,13 @@ const Mutation = {
   async deleteComment(parent, args, { prisma, request }, info) {
     const userId = getUserId(request);
 
-    const commentExist = await prisma.exists.comment({
+    const commentExist = await prisma.exists.Comment({
       where: { id: args.id },
     });
+
     if (!commentExist) throw new Error("Comment not exist");
 
-    const isUserComment = await prisma.exists.comment({
+    const isUserComment = await prisma.exists.Comment({
       where: { author: userId },
     });
 
