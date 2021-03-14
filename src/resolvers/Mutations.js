@@ -1,14 +1,9 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { getUserId } from "../utils";
+import { generateToken, getUserId, validateAndHashPassword } from "../utils";
 
 const Mutation = {
   async createUser(parent, args, { prisma }, info) {
-    if (args.data.password.length < 7)
-      throw new Error("Password should be 7 characters long.");
-
-    const password = await bcrypt.hash(args.data.password, 10);
-
+    const password = await validateAndHashPassword(args.data.password);
     const emailTaken = await prisma.exists.User({ email: args.data.email });
 
     if (emailTaken) throw new Error("Email already taken.");
@@ -22,7 +17,7 @@ const Mutation = {
 
     return {
       user,
-      token: jwt.sign({ userId: user.id }, "mySecret"),
+      token: generateToken(user.id),
     };
   },
   async loginUser(parent, { data }, { prisma }, info) {
@@ -38,12 +33,16 @@ const Mutation = {
 
     return {
       user,
-      token: jwt.sign({ userId: user.id }, "mySecret"),
+      token: generateToken(user.id),
     };
   },
 
-  updateUser(parent, { id, data }, { prisma, request }, info) {
+  async updateUser(parent, { id, data }, { prisma, request }, info) {
     const userId = getUserId(request);
+
+    if (data.password) {
+      data.password = await validateAndHashPassword(data.password);
+    }
 
     return prisma.mutation.updateUser(
       { where: { id: userId }, data: data },

@@ -34,6 +34,7 @@ type Subscription {
   count: Int!
   comment(id: ID!): CommentSubscriptionBody!
   post(id: ID!): PostSubscriptionBody!
+  myPost: [PostSubscriptionBody!]!
 }
 
 input CreateUserInput {
