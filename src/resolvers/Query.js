@@ -6,6 +6,10 @@ const Query = {
       where: {
         published: true,
       },
+      skip: args.skip,
+      first: args.first,
+      after: args.after,
+      orderBy: args.orderBy,
     };
     if (args.query) {
       operationalArgs.where.OR = [
@@ -17,7 +21,12 @@ const Query = {
   },
 
   users(parent, args, { prisma }, info) {
-    let operationalArgs = {};
+    let operationalArgs = {
+      skip: args.skip,
+      first: args.first,
+      after: args.after,
+      orderBy: args.orderBy,
+    };
     if (args.query) {
       operationalArgs.where = {
         OR: [{ name_contains: args.query }, { email_contains: args.query }],
@@ -27,7 +36,14 @@ const Query = {
   },
 
   comments(parent, args, { prisma }, info) {
-    return prisma.query.comments(null, info);
+    const query = {
+      first: args.first,
+      skip: args.skip,
+      after: args.after,
+      orderBy: args.orderBy,
+    };
+
+    return prisma.query.comments(query, info);
   },
 
   async post(parent, args, { prisma, request }, info) {
