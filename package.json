@@ -1,0 +1,32 @@
+{
+  "name": "graphql-basics",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "heroku-postbuild": "babel src --out-dir dist --copy-files",
+    "dev": "env-cmd ./config/dev.env nodemon src/index.js --ext js,graphql --exec babel-node",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "get-schema": "graphql codegen --project database"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/polyfill": "^7.0.0",
+    "bcryptjs": "^2.4.3",
+    "env-cmd": "^8.0.2",
+    "babel-cli": "6.26.0",
+    "babel-preset-env": "1.7.0",
+    "graphql-yoga": "^1.18.3",
+    "jsonwebtoken": "^8.5.1",
+    "prisma-binding": "^2.3.16",
+    "uuid": "^8.3.0"
+  },
+  "devDependencies": {
+    "@graphql-cli/codegen": "^1.17.21",
+    "@graphql-codegen/schema-ast": "^1.18.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "nodemon": "^2.0.4"
+  }
+}
