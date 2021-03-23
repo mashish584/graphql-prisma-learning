@@ -6,6 +6,6 @@ projects:
     extensions:
       codegen:
         generates:
-          ./src/generated/prisma.graphql:
+          /src/generated/prisma.graphql:
             plugins:
               - schema-ast
