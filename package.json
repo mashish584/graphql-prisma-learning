@@ -8,7 +8,7 @@
     "heroku-postbuild": "babel src --out-dir dist --copy-files",
     "dev": "env-cmd ./config/dev.env nodemon src/index.js --ext js,graphql --exec babel-node",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "get-schema": "graphql-codegen --project database"
+    "get-schema": "env-cmd ./config/dev.env  graphql-codegen --project database"
   },
   "author": "",
   "license": "ISC",
