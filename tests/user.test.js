@@ -9,7 +9,7 @@ test("Create new user", async () => {
       createUser(
         data: {
           name: "Alex"
-          email: "alex124@mailinaoe.com"
+          email: "alex1224@mailinaoe.com"
           password: "adminpass@123"
         }
       ) {
