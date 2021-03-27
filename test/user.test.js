@@ -1,26 +1,28 @@
-import { getFirstName, isValidPassword } from "../src/utils/user";
+import "cross-fetch/polyfill";
+import ApolloBoost, { gql } from "apollo-boost";
 
-test("On passing fullname of user getting firstname in return", () => {
-  const value = getFirstName("Ashish Mehra");
-  expect(value).toBe("Ashish");
-});
+const client = new ApolloBoost({ uri: "http://localhost:4000" });
 
-test("On passing firstname return firstname", () => {
-  const value = getFirstName("Ashish");
-  expect(value).toBe("Ashish");
-});
+test("Create new user", async () => {
+  const createUser = gql`
+    mutation {
+      createUser(
+        data: {
+          name: "Alex"
+          email: "alex124@mailinaoe.com"
+          password: "adminpass@123"
+        }
+      ) {
+        user {
+          id
+          name
+          email
+        }
+        token
+      }
+    }
+  `;
 
-test("Password length should be greater than 8", () => {
-  const value = isValidPassword("abs212");
-  expect(value).toBe(false);
-});
-
-test("Password does not include password", () => {
-  const value = isValidPassword("avco124password");
-  expect(value).toBe(false);
-});
-
-test("Password is greater than 8 and not include password", () => {
-  const value = isValidPassword("adminpass@1234");
-  expect(value).toBe(true);
+  const response = await client.mutate({ mutation: createUser });
+  console.log({ response });
 });
