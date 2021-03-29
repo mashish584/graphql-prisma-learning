@@ -4,6 +4,7 @@ import { gql } from "apollo-boost";
 import prisma from "../src/prisma";
 import seedDatabase, { user } from "./utils/seedDatabase";
 import getClient from "./utils/getClient";
+import { createUser, loginMutation, myProfile } from "./utils/operations";
 
 const client = getClient();
 
@@ -12,25 +13,18 @@ jest.setTimeout(30000);
 beforeEach(seedDatabase);
 
 test("Create new user", async () => {
-  const createUser = gql`
-    mutation {
-      createUser(
-        data: {
-          name: "Amit"
-          email: "amit5@mailinaoe.com"
-          password: "adminpass@123"
-        }
-      ) {
-        user {
-          id
-          name
-          email
-        }
-      }
-    }
-  `;
+  const variables = {
+    data: {
+      name: "Amit",
+      email: "amit5@mailinaoe.com",
+      password: "adminpass@123",
+    },
+  };
 
-  const response = await client.mutate({ mutation: createUser });
+  const response = await client.mutate({
+    mutation: createUser,
+    variables,
+  });
   const isExist = await prisma.exists.User({
     id: response.data.createUser.user.id,
   });
@@ -61,43 +55,31 @@ test("Should return public author profiles", async () => {
 });
 
 test("Should throw error for bad credentials", async () => {
-  const loginMutation = gql`
-    mutation {
-      login(data: { email: "adm@mailinator.com", password: "adminpass@12" }) {
-        token
-      }
-    }
-  `;
+  const variables = { email: "adm@mailinator.com", password: "adminpass@12" };
 
-  await expect(client.mutate({ mutation: loginMutation })).rejects.toThrow();
+  await expect(
+    client.mutate({ mutation: loginMutation, variables })
+  ).rejects.toThrow();
 });
 
 test("Should throw error for signup with wrong password", async () => {
-  const registerMutation = gql`
-    mutation {
-      createUser(
-        data: { name: "Ashu", email: "am22@mailinator.com", password: "123" }
-      ) {
-        token
-      }
-    }
-  `;
+  const variables = {
+    data: {
+      name: "Amit",
+      email: "amit5@mailinaoe.com",
+      password: "adm",
+    },
+  };
 
-  await expect(client.mutate({ mutation: registerMutation })).rejects.toThrow();
+  await expect(
+    client.mutate({ mutation: createUser, variables })
+  ).rejects.toThrow();
 });
 
 test("Should return my profile", async () => {
   const client = getClient(user.token);
-  const profileQuery = gql`
-    query {
-      me {
-        id
-        name
-        email
-      }
-    }
-  `;
-  const { data } = await client.query({ query: profileQuery });
+
+  const { data } = await client.query({ query: myProfile });
 
   expect(data.me.id).toBe(user.userInfo.id);
 });
