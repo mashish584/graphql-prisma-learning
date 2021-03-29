@@ -49,13 +49,15 @@ test("Should return public author profiles", async () => {
     query: userQuery,
   });
 
-  expect(users.length).toBe(1);
+  expect(users.length).toBe(2);
   expect(users[0].email).toBe(null);
   expect(users[0].name).toBe("Ashish");
 });
 
 test("Should throw error for bad credentials", async () => {
-  const variables = { email: "adm@mailinator.com", password: "adminpass@12" };
+  const variables = {
+    data: { email: "adm@mailinator.com", password: "adminpass@12" },
+  };
 
   await expect(
     client.mutate({ mutation: loginMutation, variables })

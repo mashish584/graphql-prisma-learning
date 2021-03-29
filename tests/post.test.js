@@ -23,7 +23,7 @@ test("Should return published posts", async () => {
     data: { posts },
   } = await client.query({ query: postQuery });
 
-  expect(posts.length).toBe(1);
+  expect(posts.length).toBe(2);
   expect(posts[0].published).toBe(true);
   expect(posts[0].author.email).toBe(null);
 });

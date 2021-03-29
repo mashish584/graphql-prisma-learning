@@ -78,3 +78,11 @@ export const deletePostQuery = gql`
     }
   }
 `;
+
+export const deleteCommentQuery = gql`
+  mutation($commentId: ID!) {
+    deleteComment(id: $commentId) {
+      id
+    }
+  }
+`;
