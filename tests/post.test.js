@@ -9,6 +9,7 @@ import {
   deletePostQuery,
   myPostsQuery,
   postQuery,
+  postSubscriptionQuery,
   updatePostQuery,
 } from "./utils/operations";
 
@@ -89,4 +90,19 @@ test("should be able to delete my post", async () => {
   });
 
   expect(exists).toBe(false);
+});
+
+test("Should subscribe to publish post deletion", async (done) => {
+  client.subscribe({ query: postSubscriptionQuery }).subscribe({
+    next(response) {
+      expect(response.data.post.mutation).toBe("DELETED");
+      done();
+    },
+  });
+
+  await prisma.mutatation.deletePost({
+    where: {
+      id: post.data.id,
+    },
+  });
 });

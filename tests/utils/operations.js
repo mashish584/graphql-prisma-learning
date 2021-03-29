@@ -86,3 +86,19 @@ export const deleteCommentQuery = gql`
     }
   }
 `;
+
+export const commentsSubscriptionQuery = gql`
+  subscription($postId: ID!) {
+    comment(postId: $postId) {
+      mutation
+    }
+  }
+`;
+
+export const postSubscriptionQuery = gql`
+  subscription {
+    post {
+      mutation
+    }
+  }
+`;

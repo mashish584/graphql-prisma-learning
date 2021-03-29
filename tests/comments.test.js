@@ -1,7 +1,15 @@
 import "cross-fetch/polyfill";
 import getClient from "./utils/getClient";
-import { deleteCommentQuery } from "./utils/operations";
-import seedDatabase, { comments, user, user2 } from "./utils/seedDatabase";
+import {
+  commentsSubscriptionQuery,
+  deleteCommentQuery,
+} from "./utils/operations";
+import seedDatabase, {
+  comments,
+  post,
+  user,
+  user2,
+} from "./utils/seedDatabase";
 import prisma from "../src/prisma";
 
 const client = getClient();
@@ -35,4 +43,19 @@ test("Should not delete other comments", async () => {
       },
     })
   ).rejects.toThrow();
+});
+
+test("Should subscribe to comments for a post", async (done) => {
+  const variables = {
+    postId: post.data.id,
+  };
+
+  client.subscribe({ query: commentsSubscriptionQuery, variables }).subscribe({
+    next(response) {
+      expect(response.data.comment.mutation).toBe("DELETED");
+      done();
+    },
+  });
+
+  await prisma.mutation.deleteComment({ where: { id: comments[1].data.id } });
 });
